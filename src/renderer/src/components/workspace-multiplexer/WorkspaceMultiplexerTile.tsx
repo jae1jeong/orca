@@ -1,10 +1,11 @@
-import { useCallback } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, useSortable } from '@dnd-kit/sortable'
 import { Maximize2, Minimize2, PanelBottomOpen, PanelRightOpen, Plus, X } from 'lucide-react'
 import { RepoBadgeMark } from '@/components/repo/RepoBadgeLabel'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { SYNC_FIT_PANES_EVENT } from '@/constants/terminal'
 import { translate } from '@/i18n/i18n'
 import type {
   WorkspaceMultiplexerPane,
@@ -26,6 +27,8 @@ import type {
   WorkspaceMultiplexerSlotDragData
 } from './WorkspaceMultiplexerDragScope'
 import type { WorkspaceMultiplexerCatalogItem } from './workspace-multiplexer-model'
+
+const TILE_RESIZE_FIT_DELAYS_MS = [100, 450] as const
 
 export type WorkspaceMultiplexerTabItem = {
   slot: WorkspaceMultiplexerSlot
@@ -216,6 +219,43 @@ export function WorkspaceMultiplexerTile({
     (element: HTMLDivElement | null) => onPortalTarget(slot.id, element),
     [onPortalTarget, slot.id]
   )
+  const sectionRef = useRef<HTMLElement | null>(null)
+  const setSectionRef = useCallback(
+    (element: HTMLElement | null) => {
+      sectionRef.current = element
+      setPaneDropRef(element)
+    },
+    [setPaneDropRef]
+  )
+  // Why: a portaled pane keeps drawing at its old size when its tile is resized by a split, merge, drag, or maximize; only the global fit event refits it.
+  // ponytail: the second pass covers a WebGL frame that fits before the flex layout settles; drop it if fit ever observes the tile directly.
+  useEffect(() => {
+    const section = sectionRef.current
+    if (!section) {
+      return
+    }
+    const timers = new Set<ReturnType<typeof setTimeout>>()
+    const observer = new ResizeObserver(() => {
+      for (const timer of timers) {
+        clearTimeout(timer)
+      }
+      timers.clear()
+      for (const delay of TILE_RESIZE_FIT_DELAYS_MS) {
+        const timer = setTimeout(() => {
+          timers.delete(timer)
+          window.dispatchEvent(new Event(SYNC_FIT_PANES_EVENT))
+        }, delay)
+        timers.add(timer)
+      }
+    })
+    observer.observe(section)
+    return () => {
+      observer.disconnect()
+      for (const timer of timers) {
+        clearTimeout(timer)
+      }
+    }
+  }, [])
   const emptyState = (
     <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-editor-surface px-6 text-center">
       <div>
@@ -256,7 +296,7 @@ export function WorkspaceMultiplexerTile({
 
   return (
     <section
-      ref={setPaneDropRef}
+      ref={setSectionRef}
       className={`relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-md border bg-card transition-[border-color,box-shadow] duration-150 ${
         isWorkspaceDropTarget || (centerDropTarget && !hoveredWorkspaceDropTarget.targetSlotId)
           ? 'border-ring ring-2 ring-ring/60'
