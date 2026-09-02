@@ -4,6 +4,7 @@ import type { Tab, TabGroup } from '../../../../shared/tab-types'
 import type { Worktree } from '../../../../shared/worktree/types'
 import {
   buildWorkspaceMultiplexerCatalog,
+  findWorkspaceMultiplexerSlotTerminalTab,
   groupWorkspaceMultiplexerCatalog,
   reconcileWorkspaceMultiplexerState,
   selectWorkspaceMultiplexerGroup,
@@ -193,6 +194,30 @@ describe('Workspace Multiplexer model', () => {
       'slot-target',
       'slot-c'
     ])
+  })
+
+  it('stops routing a terminal to a slot once the tab moved to another group', () => {
+    const slot = multiplexer.slots[0]!
+    const terminal: Tab = {
+      id: 'tab-a',
+      entityId: 'terminal-a',
+      groupId: 'group-a',
+      worktreeId: 'worktree-a',
+      contentType: 'terminal',
+      label: 'Terminal',
+      customLabel: null,
+      color: null,
+      sortOrder: 0,
+      createdAt: 1
+    }
+
+    expect(findWorkspaceMultiplexerSlotTerminalTab(slot, [terminal])).toBe(terminal)
+    expect(
+      findWorkspaceMultiplexerSlotTerminalTab(slot, [{ ...terminal, groupId: 'group-b' }])
+    ).toBeUndefined()
+    expect(
+      findWorkspaceMultiplexerSlotTerminalTab({ ...slot, groupId: null }, [terminal])
+    ).toBeUndefined()
   })
 
   it('groups worktrees under their project identity', () => {

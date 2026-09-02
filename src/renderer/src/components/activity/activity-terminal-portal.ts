@@ -1,4 +1,4 @@
-import { useCallback, useSyncExternalStore } from 'react'
+import { useCallback, useMemo, useSyncExternalStore } from 'react'
 
 export type TerminalSurfacePortalTarget = {
   slotId: string
@@ -99,8 +99,14 @@ export function useTerminalSurfacePortals(enabled: boolean): TerminalSurfacePort
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
 }
 
+function hasPaneKey(target: TerminalSurfacePortalTarget): target is ActivityTerminalPortalTarget {
+  return target.paneKey !== undefined
+}
+
 export function useActivityTerminalPortals(enabled: boolean): ActivityTerminalPortalTarget[] {
-  return useTerminalSurfacePortals(enabled) as ActivityTerminalPortalTarget[]
+  const targets = useTerminalSurfacePortals(enabled)
+  // Why: the Multiplexer publishes pane-less targets on the same channel.
+  return useMemo(() => targets.filter(hasPaneKey), [targets])
 }
 
 export function findTerminalSurfacePortal(

@@ -20,6 +20,7 @@ import {
 } from './workspace-multiplexer-layout'
 import {
   findWorkspaceMultiplexerCatalogItem,
+  findWorkspaceMultiplexerSlotTerminalTab,
   workspaceMultiplexerOwnsTerminalTabs,
   type WorkspaceMultiplexerCatalogItem
 } from './workspace-multiplexer-model'
@@ -55,9 +56,8 @@ export function useWorkspaceMultiplexerTerminalPortals(args: {
         const target = targets.get(slot.id)
         const workspace = findWorkspaceMultiplexerCatalogItem(args.catalog, slot)
         const unifiedTabs = args.unifiedTabsByWorktree[slot.worktreeId] ?? []
-        const unifiedTerminalExists = unifiedTabs.some(
-          (tab) => tab.contentType === 'terminal' && tab.entityId === slot.activeTerminalTabId
-        )
+        const unifiedTerminalExists =
+          findWorkspaceMultiplexerSlotTerminalTab(slot, unifiedTabs) !== undefined
         const terminalExists = (args.terminalTabsByWorktree[slot.worktreeId] ?? []).some(
           (tab) => tab.id === slot.activeTerminalTabId
         )

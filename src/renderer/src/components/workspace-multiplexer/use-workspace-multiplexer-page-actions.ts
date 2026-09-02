@@ -9,6 +9,7 @@ import {
 } from './workspace-multiplexer-layout'
 import {
   findWorkspaceMultiplexerCatalogItem,
+  findWorkspaceMultiplexerSlotTerminalTab,
   selectWorkspaceMultiplexerGroup,
   workspaceMultiplexerOwnsTerminalTabs,
   workspaceMultiplexerSlotIdentity,
@@ -64,8 +65,9 @@ export function useWorkspaceMultiplexerPageActions(
       if (slot.groupId) {
         state.focusGroup(slot.worktreeId, slot.groupId)
       }
-      const terminalTab = (state.unifiedTabsByWorktree[slot.worktreeId] ?? []).find(
-        (tab) => tab.contentType === 'terminal' && tab.entityId === slot.activeTerminalTabId
+      const terminalTab = findWorkspaceMultiplexerSlotTerminalTab(
+        slot,
+        state.unifiedTabsByWorktree[slot.worktreeId] ?? []
       )
       if (terminalTab) {
         state.activateTab(terminalTab.id, { worktreeId: slot.worktreeId })

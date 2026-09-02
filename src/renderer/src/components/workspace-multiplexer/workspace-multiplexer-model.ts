@@ -218,6 +218,22 @@ export function selectWorkspaceMultiplexerGroup(args: {
   return { groupId: group.id, activeTerminalTabId: terminalTab?.entityId ?? null }
 }
 
+/** A moved terminal belongs to its new group's surface, not to the slot that last showed it. */
+export function findWorkspaceMultiplexerSlotTerminalTab(
+  slot: WorkspaceMultiplexerSlot,
+  tabs: readonly Tab[]
+): Tab | undefined {
+  if (!slot.groupId || !slot.activeTerminalTabId) {
+    return undefined
+  }
+  return tabs.find(
+    (tab) =>
+      tab.contentType === 'terminal' &&
+      tab.groupId === slot.groupId &&
+      tab.entityId === slot.activeTerminalTabId
+  )
+}
+
 function terminalTabsInGroup(tabs: readonly Tab[], groupId: string): Tab[] {
   return tabs.filter((tab) => tab.groupId === groupId && tab.contentType === 'terminal')
 }

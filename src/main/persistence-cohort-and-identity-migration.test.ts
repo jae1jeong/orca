@@ -479,6 +479,31 @@ describe('Store.migrateWorktreeIdentity', () => {
     expect(reloaded.getUI().workspaceDeck?.slots.map((slot) => slot.worktreeId)).toEqual([OLD, NEW])
   })
 
+  it('scopes session migration to the renaming execution host', async () => {
+    const hostSession = (): WorkspaceSessionState => ({
+      ...getDefaultWorkspaceSession(),
+      activeRepoId: 'repo1',
+      activeWorktreeId: OLD,
+      tabsByWorktree: { [OLD]: [makeTerminalTab({ id: `tab-${OLD}`, worktreeId: OLD })] }
+    })
+    const store = await createStore()
+    store.addRepo(makeRepo({ id: 'repo1', path: '/repo1' }))
+    store.setWorkspaceSession(hostSession(), 'local')
+    store.setWorkspaceSession(hostSession(), 'ssh:devbox')
+
+    store.migrateWorktreeIdentity(OLD, NEW, 'local')
+
+    expect(Object.keys(store.getWorkspaceSession('local').tabsByWorktree)).toEqual([NEW])
+    expect(store.getWorkspaceSession('local').activeWorktreeId).toBe(NEW)
+    expect(Object.keys(store.getWorkspaceSession('ssh:devbox').tabsByWorktree)).toEqual([OLD])
+    expect(store.getWorkspaceSession('ssh:devbox').activeWorktreeId).toBe(OLD)
+
+    store.migrateWorktreeIdentity(OLD, NEW, 'ssh:devbox')
+
+    expect(Object.keys(store.getWorkspaceSession('ssh:devbox').tabsByWorktree)).toEqual([NEW])
+    expect(store.getWorkspaceSession('local').activeWorktreeId).toBe(NEW)
+  })
+
   it('accumulates prior ids across chained renames', async () => {
     const store = await createStore()
     store.setWorktreeMeta(OLD, { displayName: 'Cunner' })

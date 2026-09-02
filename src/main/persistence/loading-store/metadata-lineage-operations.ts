@@ -258,14 +258,16 @@ export class MetadataLineageOperations {
   ): void {
     const state = this[metadataLineageOperationsContext].runtime.state
     const persistedOwner = state.worktreeMeta[oldWorktreeId]?.hostId
-    const mover = executionHostId ?? persistedOwner ?? LOCAL_EXECUTION_HOST_ID
+    // Why: an unowned legacy rename still sweeps every session partition; a known owner scopes it.
+    const knownOwner = executionHostId ?? persistedOwner
+    const mover = knownOwner ?? LOCAL_EXECUTION_HOST_ID
     const legacyMigrationVetoed =
       executionHostId !== undefined &&
       persistedOwner !== undefined &&
       persistedOwner !== executionHostId
     const legacyChanged =
       !legacyMigrationVetoed &&
-      migrateWorktreeIdentityOperation(state, oldWorktreeId, newWorktreeId, mover)
+      migrateWorktreeIdentityOperation(state, oldWorktreeId, newWorktreeId, knownOwner)
     const multiplexerChanged =
       legacyMigrationVetoed &&
       migratePersistedWorkspaceMultiplexerIdentity(state, oldWorktreeId, newWorktreeId, mover)
