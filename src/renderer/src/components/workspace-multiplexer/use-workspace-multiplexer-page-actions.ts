@@ -44,7 +44,8 @@ export function useWorkspaceMultiplexerPageActions(
       if (
         !workspaceMultiplexerOwnsTerminalTabs(
           workspace,
-          state.unifiedTabsByWorktree[slot.worktreeId] ?? []
+          state.unifiedTabsByWorktree[slot.worktreeId] ?? [],
+          state.restoredRuntimeHostIdByWorkspaceSessionKey[slot.worktreeId]
         )
       ) {
         return false
@@ -54,7 +55,8 @@ export function useWorkspaceMultiplexerPageActions(
       if (
         !workspaceMultiplexerOwnsTerminalTabs(
           workspace,
-          state.unifiedTabsByWorktree[slot.worktreeId] ?? []
+          state.unifiedTabsByWorktree[slot.worktreeId] ?? [],
+          state.restoredRuntimeHostIdByWorkspaceSessionKey[slot.worktreeId]
         )
       ) {
         return false
@@ -91,7 +93,8 @@ export function useWorkspaceMultiplexerPageActions(
       if (
         !workspaceMultiplexerOwnsTerminalTabs(
           workspace,
-          state.unifiedTabsByWorktree[workspace.worktreeId] ?? []
+          state.unifiedTabsByWorktree[workspace.worktreeId] ?? [],
+          state.restoredRuntimeHostIdByWorkspaceSessionKey[workspace.worktreeId]
         )
       ) {
         return
@@ -101,7 +104,8 @@ export function useWorkspaceMultiplexerPageActions(
       if (
         !workspaceMultiplexerOwnsTerminalTabs(
           workspace,
-          state.unifiedTabsByWorktree[workspace.worktreeId] ?? []
+          state.unifiedTabsByWorktree[workspace.worktreeId] ?? [],
+          state.restoredRuntimeHostIdByWorkspaceSessionKey[workspace.worktreeId]
         )
       ) {
         return

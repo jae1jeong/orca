@@ -41,6 +41,7 @@ export default function WorkspaceMultiplexerPage(): React.JSX.Element {
       groupsByWorktree: state.groupsByWorktree,
       unifiedTabsByWorktree: state.unifiedTabsByWorktree,
       terminalTabsByWorktree: state.tabsByWorktree,
+      restoredSessionHosts: state.restoredRuntimeHostIdByWorkspaceSessionKey,
       workspaceSessionReady: state.workspaceSessionReady,
       setWorkspaceMultiplexer: state.setWorkspaceMultiplexer,
       closeWorkspaceMultiplexer: state.closeWorkspaceMultiplexer
@@ -60,7 +61,8 @@ export default function WorkspaceMultiplexerPage(): React.JSX.Element {
     .map((workspace) =>
       workspaceMultiplexerOwnsTerminalTabs(
         workspace,
-        store.unifiedTabsByWorktree[workspace.worktreeId] ?? []
+        store.unifiedTabsByWorktree[workspace.worktreeId] ?? [],
+        store.restoredSessionHosts[workspace.worktreeId]
       )
         ? '1'
         : '0'
@@ -158,6 +160,7 @@ export default function WorkspaceMultiplexerPage(): React.JSX.Element {
     focusedSlotId,
     catalog,
     unifiedTabsByWorktree: store.unifiedTabsByWorktree,
+    restoredSessionHosts: store.restoredSessionHosts,
     terminalTabsByWorktree: store.terminalTabsByWorktree
   })
 

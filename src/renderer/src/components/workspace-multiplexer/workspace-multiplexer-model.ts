@@ -1,4 +1,9 @@
-import { getExecutionHostLabel, getRepoExecutionHostId } from '../../../../shared/execution-host'
+import {
+  getExecutionHostLabel,
+  getRepoExecutionHostId,
+  LOCAL_EXECUTION_HOST_ID,
+  type ExecutionHostId
+} from '../../../../shared/execution-host'
 import type { FolderWorkspace } from '../../../../shared/folder-workspace-types'
 import { folderWorkspaceToWorktree } from '../../../../shared/folder-workspace-worktree'
 import type { ProjectGroup } from '../../../../shared/project-group-types'
@@ -14,6 +19,7 @@ import {
   findAmbiguousWorktreeIds,
   isUnifiedTabOwnedByWorktree
 } from '@/lib/unified-tab-host-ownership'
+import { isExecutionHostAliasForWorktree } from '@/lib/worktree-execution-host-alias'
 
 const NO_AMBIGUOUS_WORKTREE_IDS: ReadonlySet<string> = new Set()
 
@@ -121,20 +127,22 @@ export function buildWorkspaceMultiplexerCatalog(args: {
 
 export function workspaceMultiplexerOwnsTerminalTabs(
   workspace: WorkspaceMultiplexerCatalogItem,
-  tabs: readonly Tab[]
+  tabs: readonly Tab[],
+  restoredSessionHostId?: ExecutionHostId
 ): boolean {
+  const owner = {
+    id: workspace.worktreeId,
+    hostId: workspace.executionHostId,
+    runtimeOwnerEnvironmentId: workspace.runtimeOwnerEnvironmentId
+  }
   return tabs.every(
     (tab) =>
       tab.contentType !== 'terminal' ||
-      isUnifiedTabOwnedByWorktree(
-        tab,
-        {
-          id: workspace.worktreeId,
-          hostId: workspace.executionHostId,
-          runtimeOwnerEnvironmentId: workspace.runtimeOwnerEnvironmentId
-        },
-        NO_AMBIGUOUS_WORKTREE_IDS
-      )
+      (tab.executionHostId
+        ? isUnifiedTabOwnedByWorktree(tab, owner, NO_AMBIGUOUS_WORKTREE_IDS)
+        : restoredSessionHostId
+          ? isExecutionHostAliasForWorktree(restoredSessionHostId, owner)
+          : workspace.executionHostId === LOCAL_EXECUTION_HOST_ID)
   )
 }
 

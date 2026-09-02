@@ -293,5 +293,20 @@ describe('Workspace Multiplexer model', () => {
         { ...terminal, executionHostId: 'ssh:other-box' }
       ])
     ).toBe(false)
+    const legacyTerminal = { ...terminal, executionHostId: undefined }
+    expect(workspaceMultiplexerOwnsTerminalTabs(workspace, [legacyTerminal])).toBe(false)
+    expect(
+      workspaceMultiplexerOwnsTerminalTabs(workspace, [legacyTerminal], 'runtime:runtime-a')
+    ).toBe(true)
+    expect(
+      workspaceMultiplexerOwnsTerminalTabs(
+        {
+          ...workspace,
+          executionHostId: 'local',
+          runtimeOwnerEnvironmentId: undefined
+        },
+        [legacyTerminal]
+      )
+    ).toBe(true)
   })
 })

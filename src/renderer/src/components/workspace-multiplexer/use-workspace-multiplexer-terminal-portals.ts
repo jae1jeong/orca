@@ -29,6 +29,9 @@ export function useWorkspaceMultiplexerTerminalPortals(args: {
   focusedSlotId: string | null
   catalog: readonly WorkspaceMultiplexerCatalogItem[]
   unifiedTabsByWorktree: ReturnType<typeof useAppStore.getState>['unifiedTabsByWorktree']
+  restoredSessionHosts: ReturnType<
+    typeof useAppStore.getState
+  >['restoredRuntimeHostIdByWorkspaceSessionKey']
   terminalTabsByWorktree: Record<string, TerminalTab[]>
 }): (slotId: string, element: HTMLDivElement | null) => void {
   const [targets, setTargets] = useState<ReadonlyMap<string, HTMLDivElement>>(new Map())
@@ -64,7 +67,11 @@ export function useWorkspaceMultiplexerTerminalPortals(args: {
           !slot.activeTerminalTabId ||
           !unifiedTerminalExists ||
           !terminalExists ||
-          !workspaceMultiplexerOwnsTerminalTabs(workspace, unifiedTabs)
+          !workspaceMultiplexerOwnsTerminalTabs(
+            workspace,
+            unifiedTabs,
+            args.restoredSessionHosts[slot.worktreeId]
+          )
         ) {
           return []
         }
@@ -82,6 +89,7 @@ export function useWorkspaceMultiplexerTerminalPortals(args: {
     [
       args.catalog,
       args.focusedSlotId,
+      args.restoredSessionHosts,
       args.slots,
       args.terminalTabsByWorktree,
       args.unifiedTabsByWorktree,
@@ -122,7 +130,11 @@ export function useWorkspaceMultiplexerSplitEvents(
       if (
         !sourceWorkspace ||
         sourceWorkspace.identity !== targetWorkspace?.identity ||
-        !workspaceMultiplexerOwnsTerminalTabs(sourceWorkspace, tabs)
+        !workspaceMultiplexerOwnsTerminalTabs(
+          sourceWorkspace,
+          tabs,
+          state.restoredRuntimeHostIdByWorkspaceSessionKey[detail.worktreeId]
+        )
       ) {
         return
       }
