@@ -3,6 +3,7 @@ import { waitForActiveWorktree, waitForSessionReady } from './helpers/store'
 
 test('shows selected workspace terminals in Workspace Multiplexer', async ({ orcaPage }) => {
   await waitForSessionReady(orcaPage)
+  await orcaPage.evaluate(() => window.__store?.getState().updateSettings({ uiLanguage: 'en' }))
   const activeWorktreeId = await waitForActiveWorktree(orcaPage)
   await orcaPage.evaluate(async (worktreeId) => {
     const state = window.__store?.getState()
@@ -18,7 +19,9 @@ test('shows selected workspace terminals in Workspace Multiplexer', async ({ orc
     activeWorktreeId
   )
 
-  await orcaPage.getByRole('button', { name: 'Workspace Multiplexer' }).click()
+  const trigger = orcaPage.locator('[data-workspace-multiplexer-trigger]')
+  await expect(trigger).toHaveAttribute('aria-label', 'Workspace Multiplexer')
+  await trigger.click()
   await expect(orcaPage.locator('[data-workspace-multiplexer-page]')).toBeVisible()
   await expect(orcaPage.locator('[data-floating-terminal-toggle]')).toHaveCount(0)
 

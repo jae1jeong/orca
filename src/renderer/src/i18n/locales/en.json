@@ -2946,7 +2946,8 @@
             "search": "Search workspaces...",
             "empty": "No workspaces found.",
             "primary": "primary",
-            "terminalTabs": "{{value0}} terminal tabs",
+            "terminalTabs_one": "{{count}} terminal tab",
+            "terminalTabs_other": "{{count}} terminal tabs",
             "inMultiplexer": "{{value0}} in Workspace Multiplexer"
           },
           "WorkspaceMultiplexerTile": {

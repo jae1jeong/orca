@@ -15,10 +15,11 @@ export function getActiveViewPreferenceFile(dataFile: string): string {
   return join(dirname(dataFile), ACTIVE_VIEW_FILE_NAME)
 }
 
-function readActiveView(file: string): TopLevelView | null {
+function readActiveView(file: string): { value: TopLevelView; needsMigration: boolean } | null {
   try {
-    const parsed = JSON.parse(readFileSync(file, 'utf-8')) as Partial<ActiveViewFile>
-    return normalizeTopLevelView(parsed.activeView)
+    const parsed = JSON.parse(readFileSync(file, 'utf-8')) as { activeView?: unknown }
+    const value = normalizeTopLevelView(parsed.activeView)
+    return value ? { value, needsMigration: parsed.activeView !== value } : null
   } catch {
     return null
   }
@@ -48,8 +49,10 @@ export class ActiveViewPreference {
     this.file = getActiveViewPreferenceFile(dataFile)
     const storedActiveView = readActiveView(this.file)
     const fallbackActiveView = normalizeTopLevelView(legacyActiveView) ?? 'terminal'
-    this.activeView = storedActiveView ?? fallbackActiveView
-    this.persistedActiveView = storedActiveView
+    this.activeView = storedActiveView?.value ?? fallbackActiveView
+    this.persistedActiveView = storedActiveView?.needsMigration
+      ? null
+      : (storedActiveView?.value ?? null)
   }
 
   get(): TopLevelView {

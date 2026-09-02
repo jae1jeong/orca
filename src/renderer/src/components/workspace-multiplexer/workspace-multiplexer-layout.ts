@@ -20,8 +20,9 @@ export function insertWorkspaceMultiplexerSlot(
     activeSlotId: slot.id,
     slotOrder: [slot.id]
   }
-  const sourcePaneId = multiplexer.panes.find(
-    (candidate) => candidate.id === sourceSlotId || candidate.slotOrder.includes(sourceSlotId ?? '')
+  const sourcePaneId = (
+    findWorkspaceMultiplexerPaneForSlot(multiplexer, sourceSlotId) ??
+    multiplexer.panes.find((candidate) => candidate.id === sourceSlotId)
   )?.id
   if (!multiplexer.layout || !sourcePaneId) {
     return {

@@ -2619,7 +2619,8 @@
             "search": "워크스페이스 검색...",
             "empty": "워크스페이스를 찾을 수 없습니다.",
             "primary": "기본",
-            "terminalTabs": "터미널 탭 {{value0}}개",
+            "terminalTabs_one": "터미널 탭 {{count}}개",
+            "terminalTabs_other": "터미널 탭 {{count}}개",
             "inMultiplexer": "멀티플렉서에 {{value0}}개"
           },
           "WorkspaceMultiplexerTile": {

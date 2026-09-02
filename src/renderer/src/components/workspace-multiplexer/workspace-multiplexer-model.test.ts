@@ -143,6 +143,55 @@ describe('Workspace Multiplexer model', () => {
     expect(getWorkspaceMultiplexerLayoutPaneIds(split.layout)[1]).toBe('slot-b')
   })
 
+  it('inserts beside a moved slot instead of the pane that inherited its id', () => {
+    const withSecond = insertWorkspaceMultiplexerSlot(
+      multiplexer,
+      {
+        id: 'slot-b',
+        worktreeId: 'worktree-b',
+        groupId: 'group-b',
+        activeTerminalTabId: 'terminal-b'
+      },
+      'slot-a'
+    )
+    const tabbed = dropWorkspaceMultiplexerSlot(withSecond, 'slot-b', {
+      paneId: 'slot-a',
+      targetSlotId: 'slot-a',
+      insertSide: 'right'
+    })
+    const withTarget = insertWorkspaceMultiplexerSlot(
+      tabbed,
+      {
+        id: 'slot-target',
+        worktreeId: 'worktree-target',
+        groupId: null,
+        activeTerminalTabId: null
+      },
+      'slot-a'
+    )
+    const moved = dropWorkspaceMultiplexerSlot(withTarget, 'slot-a', {
+      paneId: 'slot-target',
+      targetSlotId: 'slot-target',
+      insertSide: 'right'
+    })
+    const inserted = insertWorkspaceMultiplexerSlot(
+      moved,
+      {
+        id: 'slot-c',
+        worktreeId: 'worktree-c',
+        groupId: null,
+        activeTerminalTabId: null
+      },
+      'slot-a'
+    )
+
+    expect(getWorkspaceMultiplexerLayoutPaneIds(inserted.layout)).toEqual([
+      'slot-a',
+      'slot-target',
+      'slot-c'
+    ])
+  })
+
   it('groups worktrees under their project identity', () => {
     const item = {
       identity: 'local|worktree-a',

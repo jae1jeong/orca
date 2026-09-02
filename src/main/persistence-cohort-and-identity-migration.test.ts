@@ -447,6 +447,38 @@ describe('Store.migrateWorktreeIdentity', () => {
     expect(reloaded.getUI().workspaceDeck?.slots.map((slot) => slot.worktreeId)).toEqual([NEW, OLD])
   })
 
+  it('remaps remote Multiplexer slots when local metadata vetoes legacy migration', async () => {
+    const store = await createStore()
+    store.addRepo(makeRepo({ id: 'repo1', path: '/repo1' }))
+    store.setWorktreeMeta(OLD, { displayName: 'Local twin', hostId: 'local' })
+    const workspaceMultiplexer = {
+      slots: [
+        { id: 'local-slot', worktreeId: OLD, groupId: null, activeTerminalTabId: null },
+        {
+          id: 'remote-slot',
+          worktreeId: OLD,
+          executionHostId: 'ssh:devbox' as const,
+          groupId: null,
+          activeTerminalTabId: null
+        }
+      ],
+      panes: [],
+      layout: null
+    }
+    store.updateUI({ workspaceMultiplexer, workspaceDeck: workspaceMultiplexer })
+
+    store.migrateWorktreeIdentity(OLD, NEW, 'ssh:devbox')
+    store.flush()
+
+    const reloaded = await createStore()
+    expect(reloaded.getWorktreeMeta(OLD)?.hostId).toBe('local')
+    expect(reloaded.getUI().workspaceMultiplexer?.slots.map((slot) => slot.worktreeId)).toEqual([
+      OLD,
+      NEW
+    ])
+    expect(reloaded.getUI().workspaceDeck?.slots.map((slot) => slot.worktreeId)).toEqual([OLD, NEW])
+  })
+
   it('accumulates prior ids across chained renames', async () => {
     const store = await createStore()
     store.setWorktreeMeta(OLD, { displayName: 'Cunner' })

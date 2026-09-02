@@ -2614,7 +2614,8 @@
             "search": "Buscar espacios de trabajo...",
             "empty": "No se encontraron espacios de trabajo.",
             "primary": "principal",
-            "terminalTabs": "{{value0}} pestañas de terminal",
+            "terminalTabs_one": "{{count}} pestaña de terminal",
+            "terminalTabs_other": "{{count}} pestañas de terminal",
             "inMultiplexer": "{{value0}} en el Multiplexor de espacios de trabajo"
           },
           "WorkspaceMultiplexerTile": {

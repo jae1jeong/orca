@@ -2614,7 +2614,8 @@
             "search": "ワークスペースを検索...",
             "empty": "ワークスペースが見つかりません。",
             "primary": "メイン",
-            "terminalTabs": "{{value0}} 個のターミナルタブ",
+            "terminalTabs_one": "{{count}} 個のターミナルタブ",
+            "terminalTabs_other": "{{count}} 個のターミナルタブ",
             "inMultiplexer": "ワークスペースマルチプレクサに {{value0}} 件"
           },
           "WorkspaceMultiplexerTile": {

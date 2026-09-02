@@ -61,6 +61,22 @@ describe('normalizeWorkspaceMultiplexerState', () => {
     })
   })
 
+  it('bounds malformed pane tab orders before reading them', () => {
+    const slotOrder = Array.from({ length: 25 }, () => 'slot-a')
+    Object.defineProperty(slotOrder, 24, {
+      get: () => {
+        throw new Error('read beyond persisted slot limit')
+      }
+    })
+
+    const state = normalizeWorkspaceMultiplexerState({
+      slots: [{ id: 'slot-a', worktreeId: 'worktree-a', groupId: null, activeTerminalTabId: null }],
+      panes: [{ id: 'pane-a', activeSlotId: 'slot-a', slotOrder }]
+    })
+
+    expect(state.panes[0]?.slotOrder).toEqual(['slot-a'])
+  })
+
   it('remaps only slots owned by the renamed execution host', () => {
     const state = normalizeWorkspaceMultiplexerState({
       slots: [

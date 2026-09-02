@@ -186,11 +186,19 @@ export function WorkspaceMultiplexerPicker({
                         {terminalCount > 0 ? (
                           <span
                             className="inline-flex h-5 items-center gap-1 rounded-md border border-border bg-muted/40 px-1.5 tabular-nums"
-                            aria-label={translate(
-                              'auto.components.workspace.multiplexer.WorkspaceMultiplexerPicker.terminalTabs',
-                              '{{value0}} terminal tabs',
-                              { value0: terminalCount }
-                            )}
+                            aria-label={
+                              terminalCount === 1
+                                ? translate(
+                                    'auto.components.workspace.multiplexer.WorkspaceMultiplexerPicker.terminalTabs_one',
+                                    '{{count}} terminal tab',
+                                    { count: terminalCount }
+                                  )
+                                : translate(
+                                    'auto.components.workspace.multiplexer.WorkspaceMultiplexerPicker.terminalTabs_other',
+                                    '{{count}} terminal tabs',
+                                    { count: terminalCount }
+                                  )
+                            }
                           >
                             <SquareTerminal className="size-3" />
                             {terminalCount}

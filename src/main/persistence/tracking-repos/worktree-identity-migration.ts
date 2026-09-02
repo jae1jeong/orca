@@ -12,6 +12,29 @@ import {
 } from '../../../shared/worktree/host-qualified-identity'
 import { splitWorktreeIdForFilesystem } from '../../../shared/worktree/id'
 
+export function migratePersistedWorkspaceMultiplexerIdentity(
+  state: PersistedState,
+  oldWorktreeId: string,
+  newWorktreeId: string,
+  executionHostId?: ExecutionHostId
+): boolean {
+  let changed = false
+  for (const key of ['workspaceMultiplexer', 'workspaceDeck'] as const) {
+    const current = state.ui[key]
+    const remapped = remapWorkspaceMultiplexerWorktreeId(
+      current,
+      oldWorktreeId,
+      newWorktreeId,
+      executionHostId
+    )
+    if (remapped !== current) {
+      state.ui[key] = remapped
+      changed = true
+    }
+  }
+  return changed
+}
+
 /**
  * Re-keys every worktreeId-keyed record in `state` from `oldWorktreeId` to `newWorktreeId`. Mutates `state` in place;
  * returns whether anything changed so the caller can gate its save. No-op when the ids match.
@@ -257,19 +280,13 @@ export function migrateWorktreeIdentity(
   if (showDotfiles) {
     changed = moveKey(showDotfiles) || changed
   }
-  for (const key of ['workspaceMultiplexer', 'workspaceDeck'] as const) {
-    const current = state.ui[key]
-    const remapped = remapWorkspaceMultiplexerWorktreeId(
-      current,
+  changed =
+    migratePersistedWorkspaceMultiplexerIdentity(
+      state,
       oldWorktreeId,
       newWorktreeId,
       executionHostId
-    )
-    if (remapped !== current) {
-      state.ui[key] = remapped
-      changed = true
-    }
-  }
+    ) || changed
 
   return changed
 }

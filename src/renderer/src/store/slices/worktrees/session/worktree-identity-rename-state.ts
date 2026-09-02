@@ -4,11 +4,14 @@ import type {
   BrowserWorkspace
 } from '../../../../../../shared/browser-workspace-types'
 import { remapBrowserPageDocLocation } from '../../../../../../shared/browser-page-doc-location'
-import type { ExecutionHostId } from '../../../../../../shared/execution-host'
+import {
+  LOCAL_EXECUTION_HOST_ID,
+  type ExecutionHostId
+} from '../../../../../../shared/execution-host'
 import { splitWorktreeIdForFilesystem } from '../../../../../../shared/worktree/id'
 import { worktreeWorkspaceKey } from '../../../../../../shared/workspace-scope'
 import { remapWorkspaceMultiplexerWorktreeId } from '../../../../../../shared/workspace-multiplexer-types'
-import { getWorktreeIdFromVisitKey } from '@/lib/worktree-visit-recency'
+import { getWorktreeIdFromVisitKey, getWorktreeVisitKey } from '@/lib/worktree-visit-recency'
 import {
   remapClosedTerminalTabSnapshotCwds,
   type ClosedTerminalTabSnapshot
@@ -68,6 +71,9 @@ export function buildWorktreeRenameState(
   if (oldWorktreeId === newWorktreeId) {
     return {}
   }
+  const renamesActiveHost =
+    executionHostId === undefined ||
+    (s.activeWorkspaceExecutionHostId ?? LOCAL_EXECUTION_HOST_ID) === executionHostId
   const renamed: Record<string, unknown> = {}
   const renameKey = <T>(
     key: keyof AppState,
@@ -120,16 +126,17 @@ export function buildWorktreeRenameState(
     unifiedTabsByWorktree: (tabs: { worktreeId: string }[]) => tabs.map(withNewWorktreeId),
     groupsByWorktree: (groups: { worktreeId: string }[]) => groups.map(withNewWorktreeId)
   }
-  for (const key of WORKTREE_ID_KEYED_MAP_KEYS) {
-    renameKey(key, renameValueByKey[key] as ((value: unknown) => unknown) | undefined)
-  }
   // Recency keys may carry a host prefix. Preserve that prefix while moving
   // the path-derived id so a rename cannot merge host twins.
   const nextVisitRecency = { ...s.lastVisitedAtByWorktreeId }
   let visitRecencyChanged = false
   for (const [key, value] of Object.entries(s.lastVisitedAtByWorktreeId)) {
     const rawId = getWorktreeIdFromVisitKey(key)
-    if (rawId !== oldWorktreeId) {
+    const matchesHost =
+      executionHostId === undefined ||
+      key === getWorktreeVisitKey(oldWorktreeId, executionHostId) ||
+      (key === oldWorktreeId && renamesActiveHost)
+    if (rawId !== oldWorktreeId || !matchesHost) {
       continue
     }
     const nextKey =
@@ -140,6 +147,22 @@ export function buildWorktreeRenameState(
   }
   if (visitRecencyChanged) {
     renamed.lastVisitedAtByWorktreeId = nextVisitRecency
+  }
+  const workspaceMultiplexer = remapWorkspaceMultiplexerWorktreeId(
+    s.workspaceMultiplexer,
+    oldWorktreeId,
+    newWorktreeId,
+    executionHostId
+  )
+  if (!renamesActiveHost) {
+    return {
+      ...(renamed as Partial<AppState>),
+      ...(workspaceMultiplexer !== s.workspaceMultiplexer ? { workspaceMultiplexer } : {})
+    }
+  }
+
+  for (const key of WORKTREE_ID_KEYED_MAP_KEYS) {
+    renameKey(key, renameValueByKey[key] as ((value: unknown) => unknown) | undefined)
   }
   // Re-key on rename so a renamed worktree keeps its editor-undo + push/pull state.
   renameKey('recentlyClosedEditorTabsByWorktree', (files: { worktreeId: string }[]) =>
@@ -206,12 +229,6 @@ export function buildWorktreeRenameState(
         ])
       )
     : s.sleepingAgentSessionsByPaneKey
-  const workspaceMultiplexer = remapWorkspaceMultiplexerWorktreeId(
-    s.workspaceMultiplexer,
-    oldWorktreeId,
-    newWorktreeId,
-    executionHostId
-  )
 
   return {
     ...(renamed as Partial<AppState>),

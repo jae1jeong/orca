@@ -161,7 +161,10 @@ export function normalizeWorkspaceMultiplexerState(value: unknown): WorkspaceMul
       }
       const slotOrder = [
         ...new Set(
-          input.slotOrder.map(nonEmptyString).filter((slotId): slotId is string => slotId !== null)
+          input.slotOrder
+            .slice(0, MAX_MULTIPLEXER_SLOTS)
+            .map(nonEmptyString)
+            .filter((slotId): slotId is string => slotId !== null)
         )
       ].filter((slotId) => validSlotIds.has(slotId) && !assignedSlotIds.has(slotId))
       if (slotOrder.length === 0) {

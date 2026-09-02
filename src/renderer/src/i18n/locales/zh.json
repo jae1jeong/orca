@@ -2629,8 +2629,9 @@
             "search": "搜索工作区...",
             "empty": "未找到工作区。",
             "primary": "主工作区",
-            "terminalTabs": "{{value0}} 个终端标签页",
-            "inMultiplexer": "多路复用器中有 {{value0}} 个"
+            "terminalTabs_one": "{{count}} 个终端标签页",
+            "terminalTabs_other": "{{count}} 个终端标签页",
+            "inMultiplexer": "多路复用器中有 {{value0}} 个工作区"
           },
           "WorkspaceMultiplexerTile": {
             "unknownProject": "未知项目",

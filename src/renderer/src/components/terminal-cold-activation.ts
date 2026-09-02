@@ -1,5 +1,6 @@
 import { useAppStore } from '../store'
 import {
+  applyBackgroundMountTabRestriction,
   canDeferColdActivationTabsForHost,
   canMountTerminalWorkspaceForStartup,
   planColdActivationTabDeferral,
@@ -152,6 +153,12 @@ export function applyTerminalColdActivation(controller: TerminalParkingFoundatio
     })
   ) {
     for (const portal of activityTerminalPortals) {
+      applyBackgroundMountTabRestriction(
+        backgroundMountTabIdsByWorktreeRef.current,
+        mountedWorktreeIdsRef.current,
+        portal.worktreeId,
+        [portal.tabId]
+      )
       mountedWorktreeIdsRef.current.add(portal.worktreeId)
     }
   }

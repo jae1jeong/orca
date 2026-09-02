@@ -72,20 +72,33 @@ export default function WorkspaceMultiplexerPage(): React.JSX.Element {
       setTerminalSurfacePortals([])
     }
   }, [])
+  const {
+    groupsByWorktree,
+    multiplexer,
+    setWorkspaceMultiplexer,
+    unifiedTabsByWorktree,
+    workspaceSessionReady
+  } = store
 
   useEffect(() => {
-    if (!store.workspaceSessionReady) {
+    if (!workspaceSessionReady) {
       return
     }
     const reconciled = reconcileWorkspaceMultiplexerState(
-      store.multiplexer,
-      store.groupsByWorktree,
-      store.unifiedTabsByWorktree
+      multiplexer,
+      groupsByWorktree,
+      unifiedTabsByWorktree
     )
-    if (reconciled !== store.multiplexer) {
-      store.setWorkspaceMultiplexer(reconciled)
+    if (reconciled !== multiplexer) {
+      setWorkspaceMultiplexer(reconciled)
     }
-  }, [store])
+  }, [
+    groupsByWorktree,
+    multiplexer,
+    setWorkspaceMultiplexer,
+    unifiedTabsByWorktree,
+    workspaceSessionReady
+  ])
 
   useEffect(() => {
     const focused = store.multiplexer.slots.find((slot) => slot.id === focusedSlotId)

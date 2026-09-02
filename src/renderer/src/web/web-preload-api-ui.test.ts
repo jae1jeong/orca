@@ -460,21 +460,26 @@ describe('web UI preload API', () => {
   // Census-driven, matching the host-side seam tests: a field added to PAIRING_LOCAL_UI_FIELDS
   // without wiring the web read seam fails here rather than shipping. The host sample differs from
   // the browser's for every field, so only the pin makes this pass.
+  const makeWorkspaceMultiplexerSample = (id: string) => ({
+    slots: [{ id, worktreeId: `${id}-worktree`, groupId: null, activeTerminalTabId: null }],
+    panes: [{ id, activeSlotId: id, slotOrder: [id] }],
+    layout: { type: 'leaf', groupId: id }
+  })
   const browserLocalUiSamples: Record<PairingLocalUiField, unknown> = {
     automationHostFilter: { kind: 'host', hostKey: 'browser-local-host-key' },
     hideWorkspacesFromOtherDevices: true,
     manualRepoOrder: [{ hostId: 'runtime:web-env-1', repoId: 'repo-b' }],
     workspaceHostOrder: ['runtime:web-env-1', 'local'],
-    workspaceMultiplexer: { slots: [], panes: [], layout: null },
-    workspaceDeck: { slots: [], panes: [], layout: null }
+    workspaceMultiplexer: makeWorkspaceMultiplexerSample('browser-multiplexer'),
+    workspaceDeck: makeWorkspaceMultiplexerSample('browser-deck')
   }
   const hostUiSamples: Record<PairingLocalUiField, unknown> = {
     automationHostFilter: { kind: 'all' },
     hideWorkspacesFromOtherDevices: false,
     manualRepoOrder: [{ hostId: 'local', repoId: 'repo-a' }],
     workspaceHostOrder: ['local', 'ssh:box'],
-    workspaceMultiplexer: { slots: [], panes: [], layout: null },
-    workspaceDeck: { slots: [], panes: [], layout: null }
+    workspaceMultiplexer: makeWorkspaceMultiplexerSample('host-multiplexer'),
+    workspaceDeck: makeWorkspaceMultiplexerSample('host-deck')
   }
 
   it.each(PAIRING_LOCAL_UI_FIELDS.map((field) => [field] as const))(
