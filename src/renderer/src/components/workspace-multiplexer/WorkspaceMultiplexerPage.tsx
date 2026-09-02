@@ -119,27 +119,33 @@ export default function WorkspaceMultiplexerPage(): React.JSX.Element {
     workspaceSessionReady
   ])
 
+  const focusTarget =
+    store.multiplexer.slots.find((slot) => slot.id === focusedSlotId) ??
+    store.multiplexer.slots[0] ??
+    null
+  const focusTargetWorkspace = focusTarget
+    ? findWorkspaceMultiplexerCatalogItem(catalog, focusTarget)
+    : null
+  const focusTargetRef = useRef({ slot: focusTarget, workspace: focusTargetWorkspace })
+  focusTargetRef.current = { slot: focusTarget, workspace: focusTargetWorkspace }
+  // Why: re-focus only when the target's routing changes; every activation stamps lastFocusedAt and persists, so a catalog refresh must not re-run it.
+  const focusTargetKey = focusTarget
+    ? [
+        focusTarget.id,
+        focusTarget.groupId,
+        focusTarget.activeTerminalTabId,
+        focusTargetWorkspace?.identity ?? null
+      ].join('\u0000')
+    : null
   useEffect(() => {
-    const focused = store.multiplexer.slots.find((slot) => slot.id === focusedSlotId)
-    if (focused) {
-      focusSlot(focused, findWorkspaceMultiplexerCatalogItem(catalog, focused))
+    const { slot, workspace } = focusTargetRef.current
+    if (slot) {
+      focusSlot(slot, workspace)
       return
     }
-    const first = store.multiplexer.slots[0]
-    if (first) {
-      focusSlot(first, findWorkspaceMultiplexerCatalogItem(catalog, first))
-    } else {
-      setFocusedSlotId(null)
-      setExpandedPaneId(null)
-    }
-  }, [
-    catalog,
-    focusSlot,
-    focusedSlotId,
-    setExpandedPaneId,
-    setFocusedSlotId,
-    store.multiplexer.slots
-  ])
+    setFocusedSlotId(null)
+    setExpandedPaneId(null)
+  }, [focusSlot, focusTargetKey, setExpandedPaneId, setFocusedSlotId])
 
   useEffect(() => {
     if (!store.workspaceSessionReady) {

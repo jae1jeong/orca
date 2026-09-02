@@ -77,6 +77,28 @@ describe('normalizeWorkspaceMultiplexerState', () => {
     expect(state.panes[0]?.slotOrder).toEqual(['slot-a'])
   })
 
+  it('stops walking a persisted layout at its first invalid branch', () => {
+    const layout = {
+      type: 'split',
+      direction: 'horizontal',
+      first: { type: 'leaf', groupId: 'missing-slot' },
+      ratio: 0.5
+    }
+    Object.defineProperty(layout, 'second', {
+      enumerable: true,
+      get: () => {
+        throw new Error('read past the failing branch')
+      }
+    })
+
+    const state = normalizeWorkspaceMultiplexerState({
+      slots: [{ id: 'slot-a', worktreeId: 'worktree-a', groupId: null, activeTerminalTabId: null }],
+      layout
+    })
+
+    expect(state.layout).toEqual({ type: 'leaf', groupId: 'slot-a' })
+  })
+
   it('remaps only slots owned by the renamed execution host', () => {
     const state = normalizeWorkspaceMultiplexerState({
       slots: [

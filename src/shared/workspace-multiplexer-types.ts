@@ -94,8 +94,12 @@ function normalizeLayout(
     return null
   }
   const first = normalizeLayout(input.first, validSlotIds, usedSlotIds, depth + 1)
+  // Why: bail before the sibling so a malformed tree costs one failing path, not 2^depth visits.
+  if (!first) {
+    return null
+  }
   const second = normalizeLayout(input.second, validSlotIds, usedSlotIds, depth + 1)
-  if (!first || !second) {
+  if (!second) {
     return null
   }
   const ratio =
