@@ -228,7 +228,7 @@ export function WorkspaceMultiplexerTile({
     [setPaneDropRef]
   )
   // Why: a portaled pane keeps drawing at its old size when its tile is resized by a split, merge, drag, or maximize; only the global fit event refits it.
-  // ponytail: the second pass covers a WebGL frame that fits before the flex layout settles; drop it if fit ever observes the tile directly.
+  // Why two passes: the first fit can land before the flex layout settles, leaving a stale WebGL frame until the next resize.
   useEffect(() => {
     const section = sectionRef.current
     if (!section) {
