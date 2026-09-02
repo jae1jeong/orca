@@ -18,10 +18,17 @@ import {
   insertWorkspaceMultiplexerSlot,
   removeWorkspaceMultiplexerSlot
 } from './workspace-multiplexer-layout'
+import {
+  findWorkspaceMultiplexerCatalogItem,
+  workspaceMultiplexerOwnsTerminalTabs,
+  type WorkspaceMultiplexerCatalogItem
+} from './workspace-multiplexer-model'
 
 export function useWorkspaceMultiplexerTerminalPortals(args: {
   slots: readonly WorkspaceMultiplexerSlot[]
   focusedSlotId: string | null
+  catalog: readonly WorkspaceMultiplexerCatalogItem[]
+  unifiedTabsByWorktree: ReturnType<typeof useAppStore.getState>['unifiedTabsByWorktree']
   terminalTabsByWorktree: Record<string, TerminalTab[]>
 }): (slotId: string, element: HTMLDivElement | null) => void {
   const [targets, setTargets] = useState<ReadonlyMap<string, HTMLDivElement>>(new Map())
@@ -43,10 +50,22 @@ export function useWorkspaceMultiplexerTerminalPortals(args: {
     () =>
       args.slots.flatMap((slot) => {
         const target = targets.get(slot.id)
+        const workspace = findWorkspaceMultiplexerCatalogItem(args.catalog, slot)
+        const unifiedTabs = args.unifiedTabsByWorktree[slot.worktreeId] ?? []
+        const unifiedTerminalExists = unifiedTabs.some(
+          (tab) => tab.contentType === 'terminal' && tab.entityId === slot.activeTerminalTabId
+        )
         const terminalExists = (args.terminalTabsByWorktree[slot.worktreeId] ?? []).some(
           (tab) => tab.id === slot.activeTerminalTabId
         )
-        if (!target || !slot.activeTerminalTabId || !terminalExists) {
+        if (
+          !target ||
+          !workspace ||
+          !slot.activeTerminalTabId ||
+          !unifiedTerminalExists ||
+          !terminalExists ||
+          !workspaceMultiplexerOwnsTerminalTabs(workspace, unifiedTabs)
+        ) {
           return []
         }
         return [
@@ -60,14 +79,22 @@ export function useWorkspaceMultiplexerTerminalPortals(args: {
           }
         ]
       }),
-    [args.focusedSlotId, args.slots, args.terminalTabsByWorktree, targets]
+    [
+      args.catalog,
+      args.focusedSlotId,
+      args.slots,
+      args.terminalTabsByWorktree,
+      args.unifiedTabsByWorktree,
+      targets
+    ]
   )
   useLayoutEffect(() => setTerminalSurfacePortals(descriptors), [descriptors])
   return setTarget
 }
 
 export function useWorkspaceMultiplexerSplitEvents(
-  setFocusedSlotId: (slotId: string) => void
+  setFocusedSlotId: (slotId: string) => void,
+  catalog: readonly WorkspaceMultiplexerCatalogItem[]
 ): void {
   useEffect(() => {
     const handleSplit = (event: Event): void => {
@@ -90,6 +117,15 @@ export function useWorkspaceMultiplexerSplitEvents(
         return
       }
       const tabs = state.unifiedTabsByWorktree[detail.worktreeId] ?? []
+      const sourceWorkspace = findWorkspaceMultiplexerCatalogItem(catalog, source)
+      const targetWorkspace = findWorkspaceMultiplexerCatalogItem(catalog, target)
+      if (
+        !sourceWorkspace ||
+        sourceWorkspace.identity !== targetWorkspace?.identity ||
+        !workspaceMultiplexerOwnsTerminalTabs(sourceWorkspace, tabs)
+      ) {
+        return
+      }
       const moved = tabs.find(
         (tab) => tab.id === detail.unifiedTabId && tab.contentType === 'terminal'
       )
@@ -128,5 +164,5 @@ export function useWorkspaceMultiplexerSplitEvents(
     }
     window.addEventListener(TAB_GROUP_SPLIT_CREATED_EVENT, handleSplit)
     return () => window.removeEventListener(TAB_GROUP_SPLIT_CREATED_EVENT, handleSplit)
-  }, [setFocusedSlotId])
+  }, [catalog, setFocusedSlotId])
 }

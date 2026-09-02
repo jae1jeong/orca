@@ -20,7 +20,8 @@ import {
   countWorkspaceMultiplexerSlotsByIdentity,
   countWorkspaceMultiplexerTerminalsByIdentity,
   findWorkspaceMultiplexerCatalogItem,
-  reconcileWorkspaceMultiplexerState
+  reconcileWorkspaceMultiplexerState,
+  workspaceMultiplexerOwnsTerminalTabs
 } from './workspace-multiplexer-model'
 import {
   activateWorkspaceMultiplexerSlot,
@@ -45,7 +46,7 @@ export default function WorkspaceMultiplexerPage(): React.JSX.Element {
       closeWorkspaceMultiplexer: state.closeWorkspaceMultiplexer
     }))
   )
-  const catalog = useMemo(
+  const baseCatalog = useMemo(
     () =>
       buildWorkspaceMultiplexerCatalog({
         worktrees: store.worktrees,
@@ -54,6 +55,20 @@ export default function WorkspaceMultiplexerPage(): React.JSX.Element {
         projectGroups: store.projectGroups
       }),
     [store.folderWorkspaces, store.projectGroups, store.repos, store.worktrees]
+  )
+  const catalogOwnershipKey = baseCatalog
+    .map((workspace) =>
+      workspaceMultiplexerOwnsTerminalTabs(
+        workspace,
+        store.unifiedTabsByWorktree[workspace.worktreeId] ?? []
+      )
+        ? '1'
+        : '0'
+    )
+    .join('')
+  const catalog = useMemo(
+    () => baseCatalog.filter((_, index) => catalogOwnershipKey[index] === '1'),
+    [baseCatalog, catalogOwnershipKey]
   )
   const {
     focusedSlotId,
@@ -87,12 +102,14 @@ export default function WorkspaceMultiplexerPage(): React.JSX.Element {
     const reconciled = reconcileWorkspaceMultiplexerState(
       multiplexer,
       groupsByWorktree,
-      unifiedTabsByWorktree
+      unifiedTabsByWorktree,
+      catalog
     )
     if (reconciled !== multiplexer) {
       setWorkspaceMultiplexer(reconciled)
     }
   }, [
+    catalog,
     groupsByWorktree,
     multiplexer,
     setWorkspaceMultiplexer,
@@ -139,6 +156,8 @@ export default function WorkspaceMultiplexerPage(): React.JSX.Element {
   const setPortalTarget = useWorkspaceMultiplexerTerminalPortals({
     slots: store.multiplexer.slots,
     focusedSlotId,
+    catalog,
+    unifiedTabsByWorktree: store.unifiedTabsByWorktree,
     terminalTabsByWorktree: store.terminalTabsByWorktree
   })
 
@@ -158,7 +177,7 @@ export default function WorkspaceMultiplexerPage(): React.JSX.Element {
     return () => window.removeEventListener('keydown', restoreLayout, { capture: true })
   }, [expandedPaneId, setExpandedPaneId])
 
-  useWorkspaceMultiplexerSplitEvents(setFocusedSlotId)
+  useWorkspaceMultiplexerSplitEvents(setFocusedSlotId, catalog)
 
   const slotCountByIdentity = useMemo(
     () => countWorkspaceMultiplexerSlotsByIdentity(store.multiplexer.slots),
@@ -283,8 +302,7 @@ export default function WorkspaceMultiplexerPage(): React.JSX.Element {
                     }
                     onPortalTarget={setPortalTarget}
                     onSplit={(direction) => {
-                      focusSlot(slot, workspace)
-                      if (!slot.groupId) {
+                      if (!focusSlot(slot, workspace) || !slot.groupId) {
                         return
                       }
                       const state = useAppStore.getState()
@@ -317,8 +335,7 @@ export default function WorkspaceMultiplexerPage(): React.JSX.Element {
                       setExpandedPaneId((current) => (current === pane.id ? null : pane.id))
                     }
                     onNewTerminal={() => {
-                      focusSlot(slot, workspace)
-                      if (slot.groupId) {
+                      if (focusSlot(slot, workspace) && slot.groupId) {
                         void useAppStore
                           .getState()
                           .openNewTerminalTabInActiveWorkspace(slot.groupId)

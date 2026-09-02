@@ -10,13 +10,19 @@ import type {
   WorkspaceMultiplexerSlot,
   WorkspaceMultiplexerState
 } from '../../../../shared/workspace-multiplexer-types'
-import { findAmbiguousWorktreeIds } from '@/lib/unified-tab-host-ownership'
+import {
+  findAmbiguousWorktreeIds,
+  isUnifiedTabOwnedByWorktree
+} from '@/lib/unified-tab-host-ownership'
+
+const NO_AMBIGUOUS_WORKTREE_IDS: ReadonlySet<string> = new Set()
 
 export type WorkspaceMultiplexerCatalogItem = {
   identity: string
   projectIdentity: string
   worktreeId: string
   executionHostId: NonNullable<Worktree['hostId']>
+  runtimeOwnerEnvironmentId?: Worktree['runtimeOwnerEnvironmentId']
   projectName: string
   projectGroupName: string | null
   projectBadgeColor: string | null
@@ -93,6 +99,7 @@ export function buildWorkspaceMultiplexerCatalog(args: {
           : `repo:${repo?.id ?? worktree.repoId}:${executionHostId}`,
         worktreeId: worktree.id,
         executionHostId,
+        runtimeOwnerEnvironmentId: worktree.runtimeOwnerEnvironmentId,
         projectName: folderProject?.name ?? repo?.displayName ?? 'Project',
         projectGroupName: folderProject ? null : (projectGroup?.name ?? null),
         projectBadgeColor: folderProject?.color ?? repo?.badgeColor ?? null,
@@ -110,6 +117,25 @@ export function buildWorkspaceMultiplexerCatalog(args: {
         left.projectName.localeCompare(right.projectName) ||
         left.workspaceName.localeCompare(right.workspaceName)
     )
+}
+
+export function workspaceMultiplexerOwnsTerminalTabs(
+  workspace: WorkspaceMultiplexerCatalogItem,
+  tabs: readonly Tab[]
+): boolean {
+  return tabs.every(
+    (tab) =>
+      tab.contentType !== 'terminal' ||
+      isUnifiedTabOwnedByWorktree(
+        tab,
+        {
+          id: workspace.worktreeId,
+          hostId: workspace.executionHostId,
+          runtimeOwnerEnvironmentId: workspace.runtimeOwnerEnvironmentId
+        },
+        NO_AMBIGUOUS_WORKTREE_IDS
+      )
+  )
 }
 
 export function groupWorkspaceMultiplexerCatalog(
@@ -191,10 +217,14 @@ function terminalTabsInGroup(tabs: readonly Tab[], groupId: string): Tab[] {
 export function reconcileWorkspaceMultiplexerState(
   multiplexer: WorkspaceMultiplexerState,
   groupsByWorktree: Record<string, TabGroup[]>,
-  tabsByWorktree: Record<string, Tab[]>
+  tabsByWorktree: Record<string, Tab[]>,
+  catalog: readonly WorkspaceMultiplexerCatalogItem[]
 ): WorkspaceMultiplexerState {
   let changed = false
   const slots = multiplexer.slots.map((slot) => {
+    if (!findWorkspaceMultiplexerCatalogItem(catalog, slot)) {
+      return slot
+    }
     const groups = groupsByWorktree[slot.worktreeId] ?? []
     if (groups.length === 0) {
       return slot

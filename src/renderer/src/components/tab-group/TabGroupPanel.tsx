@@ -73,7 +73,7 @@ export default function TabGroupPanel({
 }): React.JSX.Element {
   const rightSidebarOpen = useAppStore((state) => state.rightSidebarOpen)
   const sidebarOpen = useAppStore((state) => state.sidebarOpen)
-  const model = useTabGroupWorkspaceModel({ groupId, worktreeId })
+  const model = useTabGroupWorkspaceModel({ groupId, worktreeId, terminalOnly })
   const {
     activeTab,
     agentSessionItems,

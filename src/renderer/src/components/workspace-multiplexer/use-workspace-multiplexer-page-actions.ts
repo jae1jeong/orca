@@ -10,6 +10,7 @@ import {
 import {
   findWorkspaceMultiplexerCatalogItem,
   selectWorkspaceMultiplexerGroup,
+  workspaceMultiplexerOwnsTerminalTabs,
   workspaceMultiplexerSlotIdentity,
   type WorkspaceMultiplexerCatalogItem
 } from './workspace-multiplexer-model'
@@ -24,7 +25,7 @@ export function useWorkspaceMultiplexerPageActions(
   focusSlot: (
     slot: WorkspaceMultiplexerSlot,
     workspace: WorkspaceMultiplexerCatalogItem | null
-  ) => void
+  ) => boolean
   focusWorkspaceSlot: (slotId: string) => void
   addWorkspace: (workspace: WorkspaceMultiplexerCatalogItem, sourceSlotId?: string | null) => void
   removeWorkspace: (slotId: string) => void
@@ -37,10 +38,27 @@ export function useWorkspaceMultiplexerPageActions(
     (slot: WorkspaceMultiplexerSlot, workspace: WorkspaceMultiplexerCatalogItem | null) => {
       setFocusedSlotId(slot.id)
       if (!workspace) {
-        return
+        return false
       }
-      const state = useAppStore.getState()
-      state.setActiveWorktree(slot.worktreeId, slot.executionHostId)
+      let state = useAppStore.getState()
+      if (
+        !workspaceMultiplexerOwnsTerminalTabs(
+          workspace,
+          state.unifiedTabsByWorktree[slot.worktreeId] ?? []
+        )
+      ) {
+        return false
+      }
+      state.setActiveWorktree(slot.worktreeId, workspace.executionHostId)
+      state = useAppStore.getState()
+      if (
+        !workspaceMultiplexerOwnsTerminalTabs(
+          workspace,
+          state.unifiedTabsByWorktree[slot.worktreeId] ?? []
+        )
+      ) {
+        return false
+      }
       if (slot.groupId) {
         state.focusGroup(slot.worktreeId, slot.groupId)
       }
@@ -52,6 +70,7 @@ export function useWorkspaceMultiplexerPageActions(
         state.setActiveTab(terminalTab.entityId)
         state.setActiveTabType('terminal')
       }
+      return true
     },
     []
   )
@@ -68,8 +87,25 @@ export function useWorkspaceMultiplexerPageActions(
   )
   const addWorkspace = useCallback(
     (workspace: WorkspaceMultiplexerCatalogItem, sourceSlotId?: string | null): void => {
-      useAppStore.getState().setActiveWorktree(workspace.worktreeId, workspace.executionHostId)
       let state = useAppStore.getState()
+      if (
+        !workspaceMultiplexerOwnsTerminalTabs(
+          workspace,
+          state.unifiedTabsByWorktree[workspace.worktreeId] ?? []
+        )
+      ) {
+        return
+      }
+      state.setActiveWorktree(workspace.worktreeId, workspace.executionHostId)
+      state = useAppStore.getState()
+      if (
+        !workspaceMultiplexerOwnsTerminalTabs(
+          workspace,
+          state.unifiedTabsByWorktree[workspace.worktreeId] ?? []
+        )
+      ) {
+        return
+      }
       const multiplexer = state.workspaceMultiplexer
       const representedGroups = new Set(
         multiplexer.slots
@@ -128,8 +164,7 @@ export function useWorkspaceMultiplexerPageActions(
           sourceSlotId ?? focusedSlotId ?? multiplexer.slots[0]?.id ?? null
         )
       )
-      focusSlot(slot, workspace)
-      if (!terminalTab) {
+      if (focusSlot(slot, workspace) && !terminalTab) {
         void useAppStore.getState().openNewTerminalTabInActiveWorkspace(groupId)
       }
     },

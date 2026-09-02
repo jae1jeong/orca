@@ -7,6 +7,7 @@ import {
   groupWorkspaceMultiplexerCatalog,
   reconcileWorkspaceMultiplexerState,
   selectWorkspaceMultiplexerGroup,
+  workspaceMultiplexerOwnsTerminalTabs,
   type WorkspaceMultiplexerCatalogItem
 } from './workspace-multiplexer-model'
 import {
@@ -30,7 +31,7 @@ const multiplexer: WorkspaceMultiplexerState = {
 
 describe('Workspace Multiplexer model', () => {
   it('preserves unavailable workspace selections', () => {
-    expect(reconcileWorkspaceMultiplexerState(multiplexer, {}, {})).toBe(multiplexer)
+    expect(reconcileWorkspaceMultiplexerState(multiplexer, {}, {}, [])).toBe(multiplexer)
   })
 
   it('keeps an inserted slot reachable when its source is stale', () => {
@@ -252,5 +253,45 @@ describe('Workspace Multiplexer model', () => {
     })
 
     expect(catalog).toEqual([])
+  })
+
+  it('rejects terminal state owned by another execution host', () => {
+    const workspace = {
+      identity: 'ssh:build-box|worktree-a',
+      projectIdentity: 'repo:one:ssh:build-box',
+      worktreeId: 'worktree-a',
+      executionHostId: 'ssh:build-box',
+      runtimeOwnerEnvironmentId: 'runtime-a',
+      projectName: 'Orca',
+      projectGroupName: null,
+      projectBadgeColor: null,
+      workspaceName: 'anglerfish',
+      workspaceKind: 'worktree',
+      branch: 'feature/multiplexer',
+      isMainWorktree: false,
+      workspaceStatus: 'in-progress',
+      path: '/repo/anglerfish',
+      hostLabel: 'Build box'
+    } satisfies WorkspaceMultiplexerCatalogItem
+    const terminal = {
+      id: 'terminal',
+      entityId: 'terminal-entity',
+      groupId: 'group-a',
+      worktreeId: 'worktree-a',
+      executionHostId: 'runtime:runtime-a',
+      contentType: 'terminal',
+      label: 'Terminal',
+      customLabel: null,
+      color: null,
+      sortOrder: 0,
+      createdAt: 1
+    } satisfies Tab
+
+    expect(workspaceMultiplexerOwnsTerminalTabs(workspace, [terminal])).toBe(true)
+    expect(
+      workspaceMultiplexerOwnsTerminalTabs(workspace, [
+        { ...terminal, executionHostId: 'ssh:other-box' }
+      ])
+    ).toBe(false)
   })
 })
