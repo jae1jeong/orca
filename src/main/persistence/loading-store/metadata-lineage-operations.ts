@@ -261,7 +261,7 @@ export class MetadataLineageOperations {
       persistedOwner !== undefined &&
       persistedOwner !== executionHostId
         ? false
-        : migrateWorktreeIdentityOperation(state, oldWorktreeId, newWorktreeId)
+        : migrateWorktreeIdentityOperation(state, oldWorktreeId, newWorktreeId, mover)
     const canonicalChanged = migrateWorktreeMetadataLocator(
       state,
       oldWorktreeId,

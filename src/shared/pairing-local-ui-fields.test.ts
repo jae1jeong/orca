@@ -9,7 +9,9 @@ describe('pairing-local UI fields', () => {
       'automationHostFilter',
       'hideWorkspacesFromOtherDevices',
       'manualRepoOrder',
-      'workspaceHostOrder'
+      'workspaceHostOrder',
+      'workspaceMultiplexer',
+      'workspaceDeck'
     ])
   })
 
@@ -18,6 +20,8 @@ describe('pairing-local UI fields', () => {
       hideWorkspacesFromOtherDevices: true,
       manualRepoOrder: [{ hostId: 'local' as const, repoId: 'repo-a' }],
       workspaceHostOrder: ['local' as const],
+      workspaceMultiplexer: { slots: [], panes: [], layout: null },
+      workspaceDeck: { slots: [], panes: [], layout: null },
       sidebarWidth: 280,
       activeView: 'tasks' as const
     }

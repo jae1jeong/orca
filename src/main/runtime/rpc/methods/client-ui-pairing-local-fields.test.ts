@@ -44,7 +44,25 @@ describe('client UI RPC pairing-local field seams', () => {
     manualRepoOrder: [
       { hostId: 'runtime:web-11111111-2222-3333-4444-555555555555', repoId: 'repo-a' }
     ],
-    workspaceHostOrder: ['runtime:web-11111111-2222-3333-4444-555555555555', 'local']
+    workspaceHostOrder: ['runtime:web-11111111-2222-3333-4444-555555555555', 'local'],
+    workspaceMultiplexer: {
+      slots: [
+        {
+          id: 'slot-a',
+          worktreeId: 'worktree-a',
+          executionHostId: 'runtime:web-11111111-2222-3333-4444-555555555555',
+          groupId: 'group-a',
+          activeTerminalTabId: 'terminal-a'
+        }
+      ],
+      panes: [{ id: 'slot-a', activeSlotId: 'slot-a', slotOrder: ['slot-a'] }],
+      layout: { type: 'leaf', groupId: 'slot-a' }
+    },
+    workspaceDeck: {
+      slots: [],
+      panes: [],
+      layout: null
+    }
   }
 
   it.each(PAIRING_LOCAL_UI_FIELDS.map((field) => [field] as const))(

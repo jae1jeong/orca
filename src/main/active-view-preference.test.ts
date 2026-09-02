@@ -35,6 +35,12 @@ describe('ActiveViewPreference', () => {
     })
   })
 
+  it('renames the pre-multiplexer active view value', () => {
+    writeFileSync(getActiveViewPreferenceFile(dataFile), '{"activeView":"deck"}', 'utf-8')
+
+    expect(new ActiveViewPreference(dataFile, 'terminal').get()).toBe('multiplexer')
+  })
+
   it('coalesces rapid switches into one tiny preference write', async () => {
     vi.useFakeTimers()
     const preference = new ActiveViewPreference(dataFile, 'terminal')

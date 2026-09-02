@@ -144,6 +144,17 @@ export function applyTerminalColdActivation(controller: TerminalParkingFoundatio
   } else {
     lastActivationWorktreeIdRef.current = null
   }
+  if (
+    canMountTerminalWorkspaceForStartup({
+      workspaceSessionReady,
+      hydrationSucceeded,
+      startupWorktreeRefreshCompleted
+    })
+  ) {
+    for (const portal of activityTerminalPortals) {
+      mountedWorktreeIdsRef.current.add(portal.worktreeId)
+    }
+  }
   pruneClosedBackgroundMountTabs(
     backgroundMountTabIdsByWorktreeRef.current,
     mountedWorktreeIdsRef.current,

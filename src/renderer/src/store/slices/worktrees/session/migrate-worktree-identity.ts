@@ -6,15 +6,20 @@ import { buildWorktreeRenameState } from './worktree-identity-rename-state'
 
 export function createMigrateWorktreeIdentity(
   set: WorktreeSliceSet,
-  _get: WorktreeSliceGet
+  get: WorktreeSliceGet
 ): WorktreeSlice['migrateWorktreeIdentity'] {
-  return (oldWorktreeId: string, newWorktreeId: string) => {
+  return (oldWorktreeId: string, newWorktreeId: string, executionHostId) => {
     if (oldWorktreeId === newWorktreeId) {
       return
     }
     // Why: invalidate pre-rename toast actions before publishing the new path, carrying the dismissal forward.
     migrateHugeRepoWarningDismissal(oldWorktreeId, newWorktreeId)
-    set((s) => buildWorktreeRenameState(s, oldWorktreeId, newWorktreeId))
+    const previousMultiplexer = get().workspaceMultiplexer
+    set((s) => buildWorktreeRenameState(s, oldWorktreeId, newWorktreeId, executionHostId))
+    const workspaceMultiplexer = get().workspaceMultiplexer
+    if (workspaceMultiplexer !== previousMultiplexer) {
+      window.api.ui.set({ workspaceMultiplexer }).catch(console.error)
+    }
     migrateHostedReviewLinkMutationGeneration(oldWorktreeId, newWorktreeId)
   }
 }

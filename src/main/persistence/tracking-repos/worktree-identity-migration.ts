@@ -2,8 +2,10 @@ import type { WorkspaceKey } from '../../../shared/folder-workspace-types'
 import type { BrowserPage, BrowserWorkspace } from '../../../shared/browser-workspace-types'
 import { remapBrowserPageDocLocation } from '../../../shared/browser-page-doc-location'
 import type { WorkspaceSessionState } from '../../../shared/workspace-session-state-types'
+import type { ExecutionHostId } from '../../../shared/execution-host'
 import { worktreeWorkspaceKey } from '../../../shared/workspace-scope'
 import type { PersistedState } from '../../../shared/persisted-state-types'
+import { remapWorkspaceMultiplexerWorktreeId } from '../../../shared/workspace-multiplexer-types'
 import {
   getWorktreeIdFromHostIdentity,
   isWorktreeHostIdentity
@@ -18,7 +20,8 @@ import { splitWorktreeIdForFilesystem } from '../../../shared/worktree/id'
 export function migrateWorktreeIdentity(
   state: PersistedState,
   oldWorktreeId: string,
-  newWorktreeId: string
+  newWorktreeId: string,
+  executionHostId?: ExecutionHostId
 ): boolean {
   if (oldWorktreeId === newWorktreeId) {
     return false
@@ -253,6 +256,19 @@ export function migrateWorktreeIdentity(
   const showDotfiles = state.ui?.showDotfilesByWorktree
   if (showDotfiles) {
     changed = moveKey(showDotfiles) || changed
+  }
+  for (const key of ['workspaceMultiplexer', 'workspaceDeck'] as const) {
+    const current = state.ui[key]
+    const remapped = remapWorkspaceMultiplexerWorktreeId(
+      current,
+      oldWorktreeId,
+      newWorktreeId,
+      executionHostId
+    )
+    if (remapped !== current) {
+      state.ui[key] = remapped
+      changed = true
+    }
   }
 
   return changed

@@ -4,8 +4,10 @@ import type {
   BrowserWorkspace
 } from '../../../../../../shared/browser-workspace-types'
 import { remapBrowserPageDocLocation } from '../../../../../../shared/browser-page-doc-location'
+import type { ExecutionHostId } from '../../../../../../shared/execution-host'
 import { splitWorktreeIdForFilesystem } from '../../../../../../shared/worktree/id'
 import { worktreeWorkspaceKey } from '../../../../../../shared/workspace-scope'
+import { remapWorkspaceMultiplexerWorktreeId } from '../../../../../../shared/workspace-multiplexer-types'
 import { getWorktreeIdFromVisitKey } from '@/lib/worktree-visit-recency'
 import {
   remapClosedTerminalTabSnapshotCwds,
@@ -60,7 +62,8 @@ const WORKTREE_ID_KEYED_MAP_KEYS = [
 export function buildWorktreeRenameState(
   s: AppState,
   oldWorktreeId: string,
-  newWorktreeId: string
+  newWorktreeId: string,
+  executionHostId?: ExecutionHostId
 ): Partial<AppState> {
   if (oldWorktreeId === newWorktreeId) {
     return {}
@@ -203,6 +206,12 @@ export function buildWorktreeRenameState(
         ])
       )
     : s.sleepingAgentSessionsByPaneKey
+  const workspaceMultiplexer = remapWorkspaceMultiplexerWorktreeId(
+    s.workspaceMultiplexer,
+    oldWorktreeId,
+    newWorktreeId,
+    executionHostId
+  )
 
   return {
     ...(renamed as Partial<AppState>),
@@ -220,6 +229,7 @@ export function buildWorktreeRenameState(
     ...(sleepingAgentSessionsByPaneKey !== s.sleepingAgentSessionsByPaneKey
       ? { sleepingAgentSessionsByPaneKey }
       : {}),
+    ...(workspaceMultiplexer !== s.workspaceMultiplexer ? { workspaceMultiplexer } : {}),
     ...(s.activeWorktreeId === oldWorktreeId ? { activeWorktreeId: newWorktreeId } : {}),
     // The active workspace key derives from the worktree id, so keep it in sync when the active worktree is renamed.
     ...(s.activeWorkspaceKey === worktreeWorkspaceKey(oldWorktreeId)

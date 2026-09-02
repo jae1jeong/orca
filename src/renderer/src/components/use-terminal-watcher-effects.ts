@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react'
-import { findActivityTerminalPortal } from './activity/activity-terminal-portal'
+import { findTerminalSurfacePortal } from './activity/activity-terminal-portal'
 import { shouldAutoCreateInitialTerminal } from './terminal/initial-terminal'
 import {
   canWatcherCoverParkedTerminalTab,
@@ -68,7 +68,7 @@ export function useTerminalWatcherEffects(controller: TerminalColdActivationCont
           effectiveParkedTerminalWorktreeIds.has(workspace.id)
         if (parked) {
           for (const tab of tabs) {
-            const activityTerminalPortal = findActivityTerminalPortal(activityTerminalPortals, {
+            const activityTerminalPortal = findTerminalSurfacePortal(activityTerminalPortals, {
               worktreeId: workspace.id,
               tabId: tab.id
             })
@@ -84,7 +84,7 @@ export function useTerminalWatcherEffects(controller: TerminalColdActivationCont
             deferredTabIds?.has(tab.id) &&
             !parkedTabIds.has(tab.id) &&
             canWatcherCoverParkedTerminalTab(workspace.id, tab) &&
-            !findActivityTerminalPortal(activityTerminalPortals, {
+            !findTerminalSurfacePortal(activityTerminalPortals, {
               worktreeId: workspace.id,
               tabId: tab.id
             })

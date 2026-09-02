@@ -2,7 +2,7 @@ import { mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from '
 import { mkdir, rename, rm, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import type { TopLevelView } from '../shared/ui-chrome-types'
-import { isTopLevelView } from '../shared/top-level-view'
+import { normalizeTopLevelView } from '../shared/top-level-view'
 
 const ACTIVE_VIEW_FILE_NAME = 'active-view.json'
 const SAVE_DEBOUNCE_MS = 100
@@ -18,7 +18,7 @@ export function getActiveViewPreferenceFile(dataFile: string): string {
 function readActiveView(file: string): TopLevelView | null {
   try {
     const parsed = JSON.parse(readFileSync(file, 'utf-8')) as Partial<ActiveViewFile>
-    return isTopLevelView(parsed.activeView) ? parsed.activeView : null
+    return normalizeTopLevelView(parsed.activeView)
   } catch {
     return null
   }
@@ -47,7 +47,7 @@ export class ActiveViewPreference {
   constructor(dataFile: string, legacyActiveView: unknown) {
     this.file = getActiveViewPreferenceFile(dataFile)
     const storedActiveView = readActiveView(this.file)
-    const fallbackActiveView = isTopLevelView(legacyActiveView) ? legacyActiveView : 'terminal'
+    const fallbackActiveView = normalizeTopLevelView(legacyActiveView) ?? 'terminal'
     this.activeView = storedActiveView ?? fallbackActiveView
     this.persistedActiveView = storedActiveView
   }
@@ -57,13 +57,14 @@ export class ActiveViewPreference {
   }
 
   set(value: unknown): boolean {
-    if (!isTopLevelView(value)) {
+    const normalized = normalizeTopLevelView(value)
+    if (!normalized) {
       return false
     }
-    const changed = value !== this.activeView
-    this.activeView = value
+    const changed = normalized !== this.activeView
+    this.activeView = normalized
     if (
-      value !== this.persistedActiveView ||
+      normalized !== this.persistedActiveView ||
       this.writeTimer !== null ||
       this.pendingWrite !== null
     ) {

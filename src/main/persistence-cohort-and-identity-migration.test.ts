@@ -413,6 +413,40 @@ describe('Store.migrateWorktreeIdentity', () => {
     expect(reloaded.getMobileClientTabSelections()['device-a']?.[NEW]?.activeTabId).toBe('tab-1')
   })
 
+  it('keeps persisted Workspace Multiplexer selections across a host-scoped rename', async () => {
+    const store = await createStore()
+    const workspaceMultiplexer = {
+      slots: [
+        {
+          id: 'local-slot',
+          worktreeId: OLD,
+          groupId: null,
+          activeTerminalTabId: null
+        },
+        {
+          id: 'remote-slot',
+          worktreeId: OLD,
+          executionHostId: 'ssh:devbox' as const,
+          groupId: null,
+          activeTerminalTabId: null
+        }
+      ],
+      panes: [],
+      layout: null
+    }
+    store.updateUI({ workspaceMultiplexer, workspaceDeck: workspaceMultiplexer })
+
+    store.migrateWorktreeIdentity(OLD, NEW, 'local')
+    store.flush()
+
+    const reloaded = await createStore()
+    expect(reloaded.getUI().workspaceMultiplexer?.slots.map((slot) => slot.worktreeId)).toEqual([
+      NEW,
+      OLD
+    ])
+    expect(reloaded.getUI().workspaceDeck?.slots.map((slot) => slot.worktreeId)).toEqual([NEW, OLD])
+  })
+
   it('accumulates prior ids across chained renames', async () => {
     const store = await createStore()
     store.setWorktreeMeta(OLD, { displayName: 'Cunner' })

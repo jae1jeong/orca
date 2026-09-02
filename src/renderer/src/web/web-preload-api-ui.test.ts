@@ -464,13 +464,17 @@ describe('web UI preload API', () => {
     automationHostFilter: { kind: 'host', hostKey: 'browser-local-host-key' },
     hideWorkspacesFromOtherDevices: true,
     manualRepoOrder: [{ hostId: 'runtime:web-env-1', repoId: 'repo-b' }],
-    workspaceHostOrder: ['runtime:web-env-1', 'local']
+    workspaceHostOrder: ['runtime:web-env-1', 'local'],
+    workspaceMultiplexer: { slots: [], panes: [], layout: null },
+    workspaceDeck: { slots: [], panes: [], layout: null }
   }
   const hostUiSamples: Record<PairingLocalUiField, unknown> = {
     automationHostFilter: { kind: 'all' },
     hideWorkspacesFromOtherDevices: false,
     manualRepoOrder: [{ hostId: 'local', repoId: 'repo-a' }],
-    workspaceHostOrder: ['local', 'ssh:box']
+    workspaceHostOrder: ['local', 'ssh:box'],
+    workspaceMultiplexer: { slots: [], panes: [], layout: null },
+    workspaceDeck: { slots: [], panes: [], layout: null }
   }
 
   it.each(PAIRING_LOCAL_UI_FIELDS.map((field) => [field] as const))(

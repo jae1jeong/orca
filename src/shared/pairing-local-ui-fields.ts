@@ -11,7 +11,11 @@ export const PAIRING_LOCAL_UI_FIELDS = [
   'automationHostFilter',
   'hideWorkspacesFromOtherDevices',
   'manualRepoOrder',
-  'workspaceHostOrder'
+  'workspaceHostOrder',
+  // The Multiplexer names this client's visible host/workspace catalog; never send it to an independently-updated host.
+  'workspaceMultiplexer',
+  // Deprecated pre-rename key, stripped for the same reason.
+  'workspaceDeck'
 ] as const satisfies readonly (keyof PersistedUIState)[]
 
 export type PairingLocalUiField = (typeof PAIRING_LOCAL_UI_FIELDS)[number]

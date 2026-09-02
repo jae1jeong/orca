@@ -48,7 +48,13 @@ export function createWorktreeEventRuntime(
       const expiry = Date.now() + WORKTREE_RENAME_PURGE_GRACE_MS
       recentlyRenamedWorktreeIdExpiry.set(renamed.oldWorktreeId, expiry)
       recentlyRenamedWorktreeIdExpiry.set(renamed.newWorktreeId, expiry)
-      useAppStore.getState().migrateWorktreeIdentity(renamed.oldWorktreeId, renamed.newWorktreeId)
+      useAppStore
+        .getState()
+        .migrateWorktreeIdentity(
+          renamed.oldWorktreeId,
+          renamed.newWorktreeId,
+          options?.executionHostId ?? LOCAL_EXECUTION_HOST_ID
+        )
     }
     // Why: diff before/after fetch to catch out-of-band deletions and purge worktree state, else zombie ptyId entries leak (design §2c, §4.4).
     const state = useAppStore.getState()

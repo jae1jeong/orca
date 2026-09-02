@@ -4,8 +4,8 @@ import type { Tab, TabGroup } from '../../../../shared/tab-types'
 import type { TerminalTab } from '../../../../shared/terminal-tab-types'
 import { useAppStore } from '../../store'
 import {
-  findActivityTerminalPortal,
-  type ActivityTerminalPortalTarget
+  findTerminalSurfacePortal,
+  type TerminalSurfacePortalTarget
 } from '../activity/activity-terminal-portal'
 import { shouldMountBackgroundWorktreeTab } from '../terminal/background-terminal-worktree-mount'
 import { TerminalOverlaySlot } from './TerminalOverlaySlot'
@@ -20,7 +20,7 @@ type TerminalOverlayAssignment = {
 const EMPTY_TERMINAL_TABS: readonly TerminalTab[] = []
 const EMPTY_UNIFIED_TABS: readonly Tab[] = []
 const EMPTY_GROUPS: readonly TabGroup[] = []
-const EMPTY_ACTIVITY_PORTALS: ActivityTerminalPortalTarget[] = []
+const EMPTY_ACTIVITY_PORTALS: TerminalSurfacePortalTarget[] = []
 
 const TerminalPaneOverlayLayer = memo(function TerminalPaneOverlayLayer({
   worktreeId,
@@ -40,7 +40,7 @@ const TerminalPaneOverlayLayer = memo(function TerminalPaneOverlayLayer({
   /** Retention-budget force-park keeps eviction-exempt tabs mounted. */
   isForceParked?: boolean
   shouldMeasureHiddenWorktree?: boolean
-  activityTerminalPortals?: ActivityTerminalPortalTarget[]
+  activityTerminalPortals?: TerminalSurfacePortalTarget[]
   /** Targeted mounts connect only these terminal tabs. */
   backgroundMountTabIds?: ReadonlySet<string> | null
   /** Cold-activation deferred tabs receive immediate parked watcher coverage. */
@@ -137,7 +137,7 @@ const TerminalPaneOverlayLayer = memo(function TerminalPaneOverlayLayer({
           const assignment = assignments.get(terminalTab.id)
           const isVisible = Boolean(isWorktreeActive && assignment?.isActiveInGroup)
           const isActive = Boolean(isVisible && assignment?.groupId === activeGroupId)
-          const activityTerminalPortal = findActivityTerminalPortal(activityTerminalPortals, {
+          const activityTerminalPortal = findTerminalSurfacePortal(activityTerminalPortals, {
             worktreeId,
             tabId: terminalTab.id
           })

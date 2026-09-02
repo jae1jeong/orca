@@ -204,6 +204,41 @@ describe('migrateWorktreeIdentity', () => {
     expect(s.terminalLayoutsByTabId.tab1).toBeDefined()
   })
 
+  it('keeps the host-scoped Workspace Multiplexer selection across a rename', () => {
+    const store = createTestStore()
+    store.setState({
+      workspaceMultiplexer: {
+        slots: [
+          {
+            id: 'local-slot',
+            worktreeId: OLD,
+            groupId: null,
+            activeTerminalTabId: null
+          },
+          {
+            id: 'remote-slot',
+            worktreeId: OLD,
+            executionHostId: 'ssh:devbox',
+            groupId: null,
+            activeTerminalTabId: null
+          }
+        ],
+        panes: [],
+        layout: null
+      }
+    } as Partial<AppState>)
+
+    store.getState().migrateWorktreeIdentity(OLD, NEW, 'local')
+
+    expect(store.getState().workspaceMultiplexer.slots.map((slot) => slot.worktreeId)).toEqual([
+      NEW,
+      OLD
+    ])
+    expect(mockApi.ui.set).toHaveBeenCalledWith({
+      workspaceMultiplexer: store.getState().workspaceMultiplexer
+    })
+  })
+
   it('is a no-op when the ids match', () => {
     const store = createTestStore()
     store.setState({
