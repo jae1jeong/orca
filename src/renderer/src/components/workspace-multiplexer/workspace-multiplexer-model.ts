@@ -10,6 +10,7 @@ import type {
   WorkspaceMultiplexerSlot,
   WorkspaceMultiplexerState
 } from '../../../../shared/workspace-multiplexer-types'
+import { findAmbiguousWorktreeIds } from '@/lib/unified-tab-host-ownership'
 
 export type WorkspaceMultiplexerCatalogItem = {
   identity: string
@@ -74,9 +75,11 @@ export function buildWorkspaceMultiplexerCatalog(args: {
       worktree: folderWorkspaceToWorktree(workspace),
       folderProject: projectGroupsById.get(workspace.projectGroupId) ?? null
     }))
-  ]
+  ].filter(({ worktree }) => !worktree.isArchived)
+  const ambiguousWorkspaceIds = findAmbiguousWorktreeIds(rows.map(({ worktree }) => worktree))
+  // Why: terminal/group state is still bare-id keyed, so a host collision cannot be shown safely.
   return rows
-    .filter(({ worktree }) => !worktree.isArchived)
+    .filter(({ worktree }) => !ambiguousWorkspaceIds.has(worktree.id))
     .map<WorkspaceMultiplexerCatalogItem>(({ worktree, folderProject }) => {
       const repo = findRepoForWorktree(worktree, args.repos)
       const executionHostId = worktree.hostId ?? (repo ? getRepoExecutionHostId(repo) : 'local')

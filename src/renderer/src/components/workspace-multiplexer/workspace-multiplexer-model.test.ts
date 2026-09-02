@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import type { WorkspaceMultiplexerState } from '../../../../shared/workspace-multiplexer-types'
 import type { Tab, TabGroup } from '../../../../shared/tab-types'
+import type { Worktree } from '../../../../shared/worktree/types'
 import {
+  buildWorkspaceMultiplexerCatalog,
   groupWorkspaceMultiplexerCatalog,
   reconcileWorkspaceMultiplexerState,
   selectWorkspaceMultiplexerGroup,
@@ -216,5 +218,39 @@ describe('Workspace Multiplexer model', () => {
 
     expect(groups).toHaveLength(1)
     expect(groups[0]?.items.map((entry) => entry.worktreeId)).toEqual(['worktree-a', 'worktree-b'])
+  })
+
+  it('omits host-colliding workspaces while terminal state is bare-id keyed', () => {
+    const worktree = {
+      id: 'repo::/workspace',
+      repoId: 'repo',
+      path: '/workspace',
+      branch: 'main',
+      head: 'abc123',
+      isBare: false,
+      isMainWorktree: true,
+      displayName: 'workspace',
+      comment: '',
+      linkedIssue: null,
+      linkedPR: null,
+      linkedLinearIssue: null,
+      isArchived: false,
+      isUnread: false,
+      isPinned: false,
+      sortOrder: 0,
+      lastActivityAt: 0
+    } satisfies Omit<Worktree, 'hostId'>
+
+    const catalog = buildWorkspaceMultiplexerCatalog({
+      worktrees: [
+        { ...worktree, hostId: 'local' },
+        { ...worktree, hostId: 'ssh:build-box' }
+      ],
+      folderWorkspaces: [],
+      repos: [],
+      projectGroups: []
+    })
+
+    expect(catalog).toEqual([])
   })
 })
