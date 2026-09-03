@@ -62,7 +62,15 @@ describe('client UI RPC pairing-local field seams', () => {
       slots: [],
       panes: [],
       layout: null
-    }
+    },
+    agentsVisibleHostIds: ['runtime:web-11111111-2222-3333-4444-555555555555'],
+    agentsFilterRepoIds: ['repo-a'],
+    agentsShowChildAgents: true,
+    agentsCompactMode: false,
+    agentsReadFilter: 'unread',
+    agentsGroupBy: 'project',
+    activityClearedAtByPaneKey: { 'tab-1:leaf-1': 123 },
+    manuallyUnreadTurnsByPaneKey: { 'tab-1:leaf-1': 321 }
   }
 
   it.each(PAIRING_LOCAL_UI_FIELDS.map((field) => [field] as const))(

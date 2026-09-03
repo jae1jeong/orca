@@ -26,9 +26,6 @@ export function createUiViewActions(set: UISliceSet, get: UISliceGet): Partial<U
         activeView: state.previousViewBeforeMultiplexer
       })),
     openActivityPage: () => {
-      if (get().settings?.experimentalActivity !== true) {
-        return
-      }
       set((state) => ({
         activeView: 'activity',
         previousViewBeforeActivity:

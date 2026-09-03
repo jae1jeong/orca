@@ -37,7 +37,8 @@ export function applyTerminalColdActivation(controller: TerminalParkingFoundatio
     terminalParkingEnabled,
     terminalTitleSnapshotAuthorityEnabled,
     workspaceSessionReady,
-    workspaceSurfaces
+    workspaceSurfaceIds,
+    workspaceSurfaceIdSet
   } = controller
   if (
     renderedActiveWorktreeId &&
@@ -168,16 +169,15 @@ export function applyTerminalColdActivation(controller: TerminalParkingFoundatio
     tabsByWorktree,
     activationDeferredMountTabIdsByWorktreeRef.current
   )
-  const allWorktreeIds = new Set(workspaceSurfaces.map((workspace) => workspace.id))
   for (const id of mountedWorktreeIdsRef.current) {
-    if (!allWorktreeIds.has(id)) {
+    if (!workspaceSurfaceIdSet.has(id)) {
       mountedWorktreeIdsRef.current.delete(id)
       backgroundMountTabIdsByWorktreeRef.current.delete(id)
       activationDeferredMountTabIdsByWorktreeRef.current.delete(id)
     }
   }
   const anyMountedWorktreeHasLayout = computeAnyMountedWorktreeHasLayout(
-    workspaceSurfaces.map((workspace) => workspace.id),
+    workspaceSurfaceIds,
     mountedWorktreeIdsRef.current,
     layoutByWorktree,
     groupsByWorktree,

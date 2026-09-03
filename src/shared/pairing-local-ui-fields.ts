@@ -15,7 +15,16 @@ export const PAIRING_LOCAL_UI_FIELDS = [
   // The Multiplexer names this client's visible host/workspace catalog; never send it to an independently-updated host.
   'workspaceMultiplexer',
   // Deprecated pre-rename key, stripped for the same reason.
-  'workspaceDeck'
+  'workspaceDeck',
+  // Agent View filters and presentation belong to each client's host catalog and viewport.
+  'agentsVisibleHostIds',
+  'agentsFilterRepoIds',
+  'agentsShowChildAgents',
+  'agentsCompactMode',
+  'agentsReadFilter',
+  'agentsGroupBy',
+  'activityClearedAtByPaneKey',
+  'manuallyUnreadTurnsByPaneKey'
 ] as const satisfies readonly (keyof PersistedUIState)[]
 
 export type PairingLocalUiField = (typeof PAIRING_LOCAL_UI_FIELDS)[number]

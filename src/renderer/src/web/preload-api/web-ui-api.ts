@@ -6,6 +6,7 @@ import type { FeatureInteractionId } from '../../../../shared/feature-interactio
 import type { PairedUiState } from '../../../../shared/pairing-local-ui-fields'
 import {
   readClipboardImagePngBase64,
+  readClipboardImageThumbnail,
   saveClipboardImageAsTempFileInRuntime,
   writeWebClipboardText
 } from './web-clipboard-api'
@@ -131,6 +132,7 @@ export function createWebUiApi(): NonNullable<Partial<PreloadApi>['ui']> {
       }
       return saveClipboardImageAsTempFileInRuntime(contentBase64, args)
     },
+    readClipboardImageThumbnail: () => readClipboardImageThumbnail().catch(() => null),
     writeClipboardText: writeWebClipboardText,
     writeTerminalClipboardText: writeWebClipboardText,
     writeSelectionClipboardText: () =>

@@ -82,7 +82,15 @@ export function mergeHostWebUIState(
     manualRepoOrder: local.manualRepoOrder,
     workspaceHostOrder: local.workspaceHostOrder,
     workspaceMultiplexer: local.workspaceMultiplexer ?? local.workspaceDeck,
-    workspaceDeck: local.workspaceDeck
+    workspaceDeck: local.workspaceDeck,
+    agentsVisibleHostIds: local.agentsVisibleHostIds,
+    agentsFilterRepoIds: local.agentsFilterRepoIds,
+    agentsShowChildAgents: local.agentsShowChildAgents,
+    agentsCompactMode: local.agentsCompactMode,
+    agentsReadFilter: local.agentsReadFilter,
+    agentsGroupBy: local.agentsGroupBy,
+    activityClearedAtByPaneKey: local.activityClearedAtByPaneKey,
+    manuallyUnreadTurnsByPaneKey: local.manuallyUnreadTurnsByPaneKey
   } satisfies Record<PairingLocalUiField, unknown> & Partial<PersistedUIState>
   const merged = { ...mergeWebUIState(local, incoming), ...pinned }
   return normalizeTopLevelView(local.activeView) === 'multiplexer'

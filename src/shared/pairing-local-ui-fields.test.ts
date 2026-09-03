@@ -11,7 +11,15 @@ describe('pairing-local UI fields', () => {
       'manualRepoOrder',
       'workspaceHostOrder',
       'workspaceMultiplexer',
-      'workspaceDeck'
+      'workspaceDeck',
+      'agentsVisibleHostIds',
+      'agentsFilterRepoIds',
+      'agentsShowChildAgents',
+      'agentsCompactMode',
+      'agentsReadFilter',
+      'agentsGroupBy',
+      'activityClearedAtByPaneKey',
+      'manuallyUnreadTurnsByPaneKey'
     ])
   })
 

@@ -19,7 +19,8 @@ describe('applyTerminalColdActivation', () => {
       renderedActiveWorktreeId: null,
       lastActivationWorktreeIdRef: { current: null },
       tabsByWorktree: { 'worktree-a': [{ id: 'terminal-a' }, { id: 'terminal-b' }] },
-      workspaceSurfaces: [{ id: 'worktree-a' }],
+      workspaceSurfaceIds: ['worktree-a'],
+      workspaceSurfaceIdSet: new Set(['worktree-a']),
       layoutByWorktree: {},
       groupsByWorktree: {},
       activeGroupIdByWorktree: {}
